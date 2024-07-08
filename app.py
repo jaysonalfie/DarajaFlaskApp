@@ -14,7 +14,7 @@ load_dotenv
 #Safaricom Api credentials
 consumer_key = os.getenv('CONSUMER_KEY')
 consumer_secret = os.getenv('CONSUMER_SECRET')
-# base_url='https://eveman-job-openings.onrender.com/'
+# base_url='https://darajaflaskapp-2.onrender.com'
 
 
 #creating home route
@@ -97,4 +97,4 @@ def access_token():
 
 #Ensure app runs only if script is executed directly
 if __name__ == '__main__':
-    app.run(host ="0.0.0.0", port = 3400, debug=True)
+    app.run(host ="0.0.0.0", port = 8000, debug=True)
