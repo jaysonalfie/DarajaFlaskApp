@@ -60,7 +60,7 @@ def confirm():
         file.write('\n')  # Add a newline for readability between entries
     
     # Return a response (Safaricom expects a specific format)
-    return jsonify({"ResultCode": 0, "ResultDesc": "Confirmation received successfully"}), 200
+    return jsonify({"ResultCode": 0, "ResultDesc": "Accepted"}), 200
 
 @app.route('/c2b/validation', methods=['POST'])
 def validation():
@@ -73,8 +73,24 @@ def validation():
         file.write('\n')  # Add a newline for readability between entries
     
     # Return a response (Safaricom expects a specific format)
-    return jsonify({"ResultCode": 0, "ResultDesc": "Validation received successfully"}), 200
+    return jsonify({"ResultCode": 0, "ResultDesc": "Accepted"}), 200
 
+#Simulating transaction
+@app.route('/simulate')
+def simulate():
+    mpesa_endpoint = 'https://sandbox.safaricom.co.ke/mpesa/c2b/v1/simulate'
+    headers = {"Authorization": f"Bearer {access_token()}"}
+    request_body = {
+         "ShortCode":600998,
+         "CommandID": "CustomerPayBillOnline",
+         "Amount": 1,
+         "Msisdn": 254708374149,
+         "BillRefNumber": "Test",
+    }
+
+    simulate_response = requests.post(mpesa_endpoint, json= request_body, headers=headers)
+
+    return simulate_response.json()
 
 
     
