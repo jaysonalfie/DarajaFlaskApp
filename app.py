@@ -4,6 +4,8 @@ from requests.auth import HTTPBasicAuth
 import json
 import os
 from dotenv import load_dotenv
+from datetime import datetime
+import base64
 
 
 #initializing the Flask Application
@@ -92,9 +94,44 @@ def simulate():
 
     return simulate_response.json()
 
+#initiate Mpesa express resquest
+@app.route('/pay')
+def MpesaExpress():
+    amount = request.args.get('amount')
+    phone = request.args.get('phone')
+    endpoint ='https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
+    headers = {"Authorization": f"Bearer {access_token()}"}
+    Timestamp = datetime.now()
+    times = Timestamp.strftime("%Y%m%d%H%M%S")
+    password = "174379" + "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919" + times
+    password = base64.b64encode(password.encode('utf-8') ).decode('utf-8')
 
+    data = {
+        "BusinessShortCode":"174379",
+        "Password":password,
+        "Timestamp":times,
+        "TransactionType":"CustomerPaybillOnline",
+        "PartyA":phone,
+        "PartyB":"174379",
+        "PhoneNumber":phone,
+        "CallBackURL": f"{base_url}/lnmo-callback",
+        "AccountReference":"TestPay",
+        "TransactionDesc":"HelloTest",
+        "Amount":amount
+
+    }
+
+    res = requests.post(endpoint, json=data, headers= headers)
+    return res.json()
+
+#consume Mpesa express callback
+@app.route('/lmno-callback', methods=["POST"])
+def incoming():
+    data = request.get_json()
+    print(data)
+    return "ok"
     
-
+#function to get access token
 def access_token():
     #defining headers for the HTTP request
     # headers = {
