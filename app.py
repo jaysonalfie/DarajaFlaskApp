@@ -18,6 +18,23 @@ consumer_key = os.getenv('CONSUMER_KEY')
 consumer_secret = os.getenv('CONSUMER_SECRET')
 base_url='https://darajaflaskapp-4.onrender.com'
 
+#function to get access token
+def access_token():
+    #defining headers for the HTTP request
+    # headers = {
+    #     'Content-Type': 'application/json; charset=utf8'
+    
+    # }
+    #Safaricom OAuth token endpoint
+    mpesa_auth_url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
+    #Making a Get request to the Safaricom API
+    #Parsing the JSON response
+    #using the HTTP Basic Auth with the consumer key and secret
+    data = (requests.get(mpesa_auth_url, auth = HTTPBasicAuth(consumer_key, consumer_secret) )).json()
+
+    #Return the Json Data which has the access token
+    return data['access_token']
+       
 
 #creating home route
 @app.route('/')
@@ -95,59 +112,43 @@ def simulate():
     return simulate_response.json()
 
 #initiate Mpesa express resquest
+#/pay?phone=&amount=
 @app.route('/pay')
 def MpesaExpress():
     amount = request.args.get('amount')
     phone = request.args.get('phone')
-    endpoint ='https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
+    endpoint = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
     headers = {"Authorization": f"Bearer {access_token()}"}
     Timestamp = datetime.now()
-    times = Timestamp.strftime("%Y%m%d%H%M%S")
-    password = "174379" + "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919" + times
-    password = base64.b64encode(password.encode('utf-8') ).decode('utf-8')
+    times =Timestamp.strftime("%Y%m%d%H%M%S")
+    password = "174379"+ "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919" + times
+    password = base64.b64encode(password.encode('utf-8')).decode('utf-8')
 
     data = {
-        "BusinessShortCode":"174379",
-        "Password":password,
+        "BusinessShortCode": "174379",
+        "Password": password,
         "Timestamp":times,
-        "TransactionType":"CustomerPaybillOnline",
+        "TransactionType":"CustomerPayBillOnline",
         "PartyA":phone,
         "PartyB":"174379",
         "PhoneNumber":phone,
-        "CallBackURL": f"{base_url}/lnmo-callback",
-        "AccountReference":"TestPay",
-        "TransactionDesc":"HelloTest",
+        "CallBackURL": f"{base_url} + /lmno-callback",    
+        "AccountReference":"Test",    
+        "TransactionDesc":"Test",
         "Amount":amount
-
     }
 
-    res = requests.post(endpoint, json=data, headers= headers)
+    res = requests.post(endpoint, json= data , headers=headers)
     return res.json()
 
-#consume Mpesa express callback
-@app.route('/lmno-callback', methods=["POST"])
+#consume M-PESA express callback
+@app.route('/lmno-callback', methods =["POST"])
 def incoming():
-    data = request.get_json()
+    data =request.get_json()
     print(data)
     return "ok"
     
-#function to get access token
-def access_token():
-    #defining headers for the HTTP request
-    # headers = {
-    #     'Content-Type': 'application/json; charset=utf8'
-    
-    # }
-    #Safaricom OAuth token endpoint
-    mpesa_auth_url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
-    #Making a Get request to the Safaricom API
-    #Parsing the JSON response
-    #using the HTTP Basic Auth with the consumer key and secret
-    data = (requests.get(mpesa_auth_url, auth = HTTPBasicAuth(consumer_key, consumer_secret) )).json()
 
-    #Return the Json Data which has the access token
-    return data['access_token']
-       
 
 
 #Ensure app runs only if script is executed directly
